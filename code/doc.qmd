@@ -21,6 +21,7 @@ library(dplyr)
 library(tibble)
 library(gt)
 library(readxl)
+library(ggeffects)
 library(MuMIn) 
 library(DHARMa)
 ```
@@ -195,6 +196,48 @@ summary(model1)
 ```
 
 The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance (F(2, 224) = 8.503, p < 0.001, $\alpha$ = 0.05). (model1)
+
+## h.
+
+```{r}
+
+#| fig-width: 12
+#| fig-height: 4
+
+# base layer: ggplot
+# using the drought_exp_clean object
+ggplot(data = nest boxes_clean,
+       aes(x = sp,
+           y = total_g,
+           color = water_treatment)) +
+  # first layer: jitter showing individual observations
+  geom_jitter(width = 0.1,
+              height = 0,
+              shape = 21,
+              alpha = 0.6) +
+  # second layer: point range showing model predictions
+  # note that this is appropriate because there are only categorical predictors
+  # in the final model
+  geom_pointrange(data = model4_predictions,
+                  aes(y = predicted,
+                      ymin = conf.low,
+                      ymax = conf.high)) +
+  # manually setting colors
+  scale_color_manual(values = c("Well watered" = ww_col,
+                                "Drought stressed" = ds_col)) +
+
+```
+
+
+```{r model-predictions}
+model1_predictions <- ggpredict(
+  model1, # model object
+  terms = c("season", "edge_distance") # predictors
+) 
+  # treating this like a regular data frame
+  # renaming the columns
+
+```
 
 
 
