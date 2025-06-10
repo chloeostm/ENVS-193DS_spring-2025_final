@@ -1,5 +1,201 @@
 ---
-title: "code"
-format: html
+title: "ENVS 139DS Final"
+author: "Chloe Ostermann"
+date: "2025-06-8"
+format: 
+  html: 
+    toc: true
+    toc-float: true
+    toc-location: left
 ---
 
+GitHub link: https://github.com/chloeostm/ENVS-193DS_spring-2025_final.git
+
+```{r libraries}
+#| message: false
+# Read in packages
+library(tidyverse)
+library(janitor)
+library(here)
+library(dplyr)
+library(tibble)
+library(gt)
+library(readxl)
+library(MuMIn) 
+library(DHARMa)
+```
+
+# Problem 1. Research Writing
+
+## a.
+
+In part 1, they used Pearson's correlation. In part 2 they used an ANOVA test
+
+## b.
+
+#Problem 2. Data Visualization
+
+## a.
+
+```{r}
+
+sst <- read_csv(here("data","SST_update2023.csv")) # read in data from data folder using here()
+sst_clean <- sst %>% # use raw sst data
+  clean_names() # clean names of data so there's no spaces between words
+
+sst_clean$year <- as.numeric( # converts year into a numeric value
+  format(as.Date(sst_clean$date), "%Y")) # extracts year from date and makes it a Date object
+sst_clean$year <- factor(sst_clean$year, levels = 2018:2023) # make year a factor with 6 levels
+sst_clean$month <- as.numeric(format(as.Date(sst_clean$date), "%m")) # extract month
+sst_clean$month <- factor(sst_clean$month,levels = 1:12, # factorize month with 12 levels
+                          labels = month.abb,ordered = TRUE) # abbreviate and order months
+sst_clean$date <- NULL # remove date column
+sst_clean <- sst_clean %>% # altering sst-clean data
+  filter(!is.na(year)) # remove rows where year shows NA
+
+sst_clean_summary <- sst_clean %>% # summarizing sst_clean data
+  group_by(year, month) %>% # grouping by year and month
+  summarise(
+    mean_monthly_sst = round(mean(temp, na.rm = TRUE),1), # calculate mean temperature and round to nearest tenth
+    .groups = "drop" # un-groups tibble
+  )
+str(sst_clean_summary) # show structure of sst_clean_summary
+sst_clean_summary %>% # use sst_clean_summary data
+  slice_sample(n = 5) # display tibble with 5 random rows
+
+```
+
+## b.
+
+```{r}
+
+#| warning: false
+
+#create custom colors to define a green color gradient in the correct order
+green_shades <- c("2018" = "#c3f6c3", "2019" = "#a1d99b", 
+                  "2020" = "#74c476", "2021" = "#31a354", 
+                  "2022" = "#006d2c", "2023" = "#00441b") 
+
+ggplot(data = sst_clean_summary, # create table from sst_clean_summary data
+       aes(x = month, # set x axis data
+           y = mean_monthly_sst, # set y axis data
+           color = year)) + # show different colors for different years
+  geom_point() + # create points for each data point
+  geom_line(aes(group = year)) + # create lines connecting data points from each year
+  scale_y_continuous( 
+    breaks = seq(14, 20, by = 2), # Ensure 20 is included as top tick
+    limits = c(12, 20), # Set axis limits to cap at 20
+    expand = expansion(mult = c(0, 0)) # Prevent extra padding
+  ) +
+  
+  scale_color_manual(values = green_shades) +
+  labs(title = "Sea Surface Temperature in SB channel", # set title
+       x = "Month", # name x axis
+       y = "Mean monthly sea surface temperature (ºC)", # name y axis
+       color = "Year") + # name legend "water year"
+  
+  theme(
+    panel.grid = element_blank(), # remove grid
+    panel.background = element_rect(fill = "white", color = NA), 
+    # color background white
+    plot.background = element_rect(fill = "white", color = NA), 
+    # color plot white
+    panel.border = element_rect(color = "darkgrey", fill = NA, size = 1),
+    legend.position = c(0.10, 0.70), # position legend inside the panel
+    plot.title = element_text(hjust = -0.1) # move the title
+)
+```
+
+#Problem 3. Data Analysis
+
+```{r}
+
+nest_boxes <- read.csv(here("data","occdist.csv"))
+nest_boxes_clean <- nest_boxes %>% 
+  clean_names()
+
+```
+
+## a.
+
+In this data set, a 1 indicates that the associated bird species was present in the nest box. A 0 indicates that the nest box was unoccupied by that bird species.
+
+## b.
+
+In this experiment, the difference between these birds is that Swift Parrots are the target critically endangered bird species, whereas the Common Starlings and Tree Martins are non target native competitors to the Swift Parrots and have been recorded to inhabit the nest boxes intended for the Swift Parrots.
+
+## c.
+
+The authors refer to two "seasons" which are two different years of study, 2016 and 2019, in which they recorded during the breeding season of the Swift Parrot species. The difference between these seasons is that the nest boxes were more established and familiar to the target and non-target species in 2019 compared to 2016 when they were freshly deployed resulting in stronger nest to bird relationships in 2019. 
+
+## d. 
+
+| Model number | Season | Distance to forest edge | Model Description           |  
+|:------------:|:------:|:-----------------------:|:----------------------------|  
+| 1            |        |                         | no predictors (null model)  |
+| 2            |   X    |            X            | all predictors (full model) | 
+| 3            |        |                         | SLA and water treatment     |   
+| 4            |        |                         | SLA and species             |    
+
+## e. 
+
+```{r}
+
+# model 0: null model
+model0 <- lm(
+  sp ~ 1, # formula
+  data = nest_boxes_clean # data frame
+)
+
+# model 1: all predictors
+model1 <- lm(
+  sp ~ season + edge_distance, # formula
+  data = nest_boxes_clean # data frame
+)
+
+# model 2: all predictors
+model2 <- lm(
+  sp ~ season, # formula
+  data = nest_boxes_clean # data frame
+)
+
+# model 3: all predictors
+model3 <- lm(
+  sp ~ edge_distance, # formula
+  data = nest_boxes_clean # data frame
+)
+
+```
+## f. 
+
+```{r}
+
+plot(simulateResiduals(model0))
+plot(simulateResiduals(model1))
+plot(simulateResiduals(model2))
+plot(simulateResiduals(model3))
+
+```
+
+
+## g.
+
+```{r}
+
+AICc(model0,
+     model1,
+     model2,
+     model3 # best model: water and species
+     ) |> 
+  # arranging output in descending order of AIC
+  arrange(AICc)
+
+summary(model1)
+
+```
+
+The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance (F(2, 224) = 8.503, p < 0.001, $\alpha$ = 0.05). (model1)
+
+
+
+#Problem 4. Affective and exploratory Visualization
