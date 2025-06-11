@@ -34,6 +34,13 @@ In part 1, they used Pearson's correlation. In part 2 they used an ANOVA test
 
 ## b.
 
+To improve their data communication, my co-worker could include an effect size statistic to communicate how large the calculated differences are between groups. For instance, they could determine how large the difference in means of nitrogen load is between sources which adds valuable insight on the significance of the results.
+Additionally, they could include a Post-hoc pairwise comparison such as a Tukey's HSD comparison to improve how they communicated the results of the ANOVA test. This would help determine which specific group differs from the others. For instance, whether the average nitrogen load in waste water treatment differs significantly from fertilizer treatment. 
+
+## c.
+
+
+
 #Problem 2. Data Visualization
 
 ## a.
@@ -142,26 +149,26 @@ The authors refer to two "seasons" which are two different years of study, 2016 
 
 ```{r}
 
-# model 0: null model
-model0 <- lm(
-  sp ~ 1, # formula
-  data = nest_boxes_clean # data frame
-)
-
-# model 1: all predictors
+# model 1: null model
 model1 <- lm(
-  sp ~ season + edge_distance, # formula
+  sp ~ 1, # formula
   data = nest_boxes_clean # data frame
 )
 
 # model 2: all predictors
 model2 <- lm(
+  sp ~ season + edge_distance, # formula
+  data = nest_boxes_clean # data frame
+)
+
+# model 3: season
+model3 <- lm(
   sp ~ season, # formula
   data = nest_boxes_clean # data frame
 )
 
-# model 3: all predictors
-model3 <- lm(
+# model 4: edge_distance
+model4 <- lm(
   sp ~ edge_distance, # formula
   data = nest_boxes_clean # data frame
 )
@@ -183,62 +190,145 @@ plot(simulateResiduals(model3))
 
 ```{r}
 
-AICc(model0,
-     model1,
-     model2,
-     model3 # best model: water and species
-     ) |> 
-  # arranging output in descending order of AIC
-  arrange(AICc)
-
-summary(model1)
+model_compare <- AIC(model1, model2, model3, model4)
+model_compare <- model_compare[order(model_compare$AIC), ]
+print(model_compare)
 
 ```
 
-The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance (F(2, 224) = 8.503, p < 0.001, $\alpha$ = 0.05). (model1)
+The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance.
 
 ## h.
 
 ```{r}
 
-#| fig-width: 12
-#| fig-height: 4
 
-# base layer: ggplot
-# using the drought_exp_clean object
-ggplot(data = nest boxes_clean,
-       aes(x = sp,
-           y = total_g,
-           color = water_treatment)) +
-  # first layer: jitter showing individual observations
-  geom_jitter(width = 0.1,
-              height = 0,
-              shape = 21,
-              alpha = 0.6) +
-  # second layer: point range showing model predictions
-  # note that this is appropriate because there are only categorical predictors
-  # in the final model
-  geom_pointrange(data = model4_predictions,
-                  aes(y = predicted,
-                      ymin = conf.low,
-                      ymax = conf.high)) +
-  # manually setting colors
-  scale_color_manual(values = c("Well watered" = ww_col,
-                                "Drought stressed" = ds_col)) +
 
+ggplot(nest_boxes_clean,
+       aes(x = edge_distance, y = sp, color = season)) +
+  geom_jitter(width = 8, height = 0.05, alpha = 0.5) +
+
+  # Model prediction lines
+  stat_smooth(method = "glm",
+              methods.args = list(family = "binomial"),
+              se = TRUE,
+              fullrange = TRUE,
+              aes(fill = season)) +
+  scale_y_continuous(name = "Probability of Swift Parrot Nest Box being occupied",
+                     limits = c(0, 1)) +
+  scale_x_continuous(name = "Distance from Forest edge (m)") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    text = element_text(size = 12)
+  )
+
+  # Axis labels
+  labs(
+    x = "Distance to Forest Edge (m)",
+    y = "Probability of Nest Box Occupancy",
+    title = "Model Predictions of Nest Box Occupancy by Distance and Season",
+    color = "Season",
+    fill = "Season"
+  ) 
+  
+```
+```{r}
+ggplot(nest_boxes_clean, aes(x = interaction(season, sp), y = edge_distance)) +
+  
+  # Boxplot with fill by occupancy
+  geom_boxplot(aes(fill = factor(sp)),
+               alpha = 0.5,
+               outlier.shape = NA) +
+
+  # Jittered points overlaid on boxplots
+  geom_jitter(aes(color = factor(sp)),
+              width = 0.2,
+              size = 2,
+              alpha = 0.8) +
+  facet_wrap(~ season, nrow = 1) +
+
+  # Custom axis labels (season on x, not the full interaction term)
+  #scale_x_discrete(labels = function(x) gsub("\\.0", " (No)", gsub("\\.1", " (Yes)", x))) +
+
+  # Labels and colors
+  labs(
+    x = "Breeding Season and Nest Occupancy",
+    y = "Distance to Forest Edge (m)",
+    fill = "Nest Occupied",
+    color = "Nest Occupied",
+    title = "Swift Parrot Nest Occupancy by Season and Distance to Forest Edge"
+  ) +
+
+  scale_fill_manual(values = c("0" = "#D55E00", "1" = "#0072B2"),
+                    labels = c("No", "Yes")) +
+  scale_color_manual(values = c("0" = "#D55E00", "1" = "#0072B2"),
+                     labels = c("No", "Yes")) +
+
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    text = element_text(size = 12)
+  )
 ```
 
 
+
 ```{r model-predictions}
-model1_predictions <- ggpredict(
-  model1, # model object
-  terms = c("season", "edge_distance") # predictors
-) 
+model2_preds <- ggpredict(
+  model2, # model object
+  terms = c("edge_distance [all]", "season") # predictors
+) %>% 
+  rename(season = group,
+         edge_distance = x)
   # treating this like a regular data frame
   # renaming the columns
+nest_boxes_clean$season <- as.factor(nest_boxes_clean$season)
+
+ggplot() +
+  geom_point(data = nest_boxes_clean,
+       aes(x = edge_distance,
+           y = as.numeric(sp),
+           color = season),
+       size = 3,
+       alpha = 0.4,
+       position = position_jitter(height = 0.00)) +
+  geom_ribbon(data = model2_preds,
+              aes(x = edge_distance,
+                  ymin = conf.low,
+                  ymax = conf.high,
+                  fill = season),
+              alpha = 0.3) + 
+  geom_line(data = model2_preds,
+            aes(x = edge_distance,
+                y = predicted,
+                color = season),
+            linewidth = 1) +
+  scale_y_continuous("Swift Parrot Occupancy: Yes (1) or No (0)",
+                     limits = c(0, 1),
+                     breaks = seq(0, 1)) +
+  scale_color_discrete(name = "Season") +
+  scale_fill_discrete(name = "Season") +
+  labs(x = "Distance from Forest Edge (m)") +
+  theme_minimal(base_size = 14)
 
 ```
 
 
 
 #Problem 4. Affective and exploratory Visualization
+
+## a. 
+
+These two visualizations differ since the affective visualization heavily leans on artistic elements and creativity to share data whereas the exploratory visualizations I made for Homework 2 were designed to explicitly share the quantitative data in a simple and straightforward graph without any artistic embellishments.
+
+One similarity that I see is that in both visualizations I opted to communicate the actual data using box plots. I also separated each of the variables in my exploratory visualizations using distinct colors which I also did for my affective one.
+
+I found different patterns in my data for both visualizations mainly because I had collected much more data points by the time I made the affective visualization which resulted in different trends and patterns. For instance, my exploratory visualizations suggested that I slept more on average on days where I took the bus instead of walking, whereas my affective visualization indicated that I slept the most on days where I walked.
+The range of my data boxplots was also larger for my affective visualization since it had more data and thus a broader range since it had more outliers recorded.
+
+During our Week 9 workshop, I received positive feedback on my drawing design and choice of colors. My classmates suggested that I incorporate more elements alluding to the sleep variable I was using in my data, which I integrated into my design by making my little sleeping figurines in the box plots larger and gave them elements such as a pillow and a sleeping mask.
+
+
