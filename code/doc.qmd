@@ -135,12 +135,12 @@ The authors refer to two "seasons" which are two different years of study, 2016 
 
 ## d.
 
-| Model number | Season | Distance to forest edge | Model Description           |
-|:-------------:|:-------------:|:--------------------:|:--------------------|
-|      1       |        |                         | no predictors (null model)  |
-|      2       |   X    |            X            | all predictors (full model) |
-|      3       |   X    |                         | season                      |
-|      4       |        |            X            | Distance from Forest Edge   |
+| Model number | Season | Forest Edge Distance | Model Description             |
+|:------------:|:------:|:-------------  -----:|:-----------------------|
+|      1       |        |                      | No predictors (null model)    |
+|      2       |   X    |           X          | All predictors (full model)   |
+|      3       |   X    |                      | Only Season predictor         |
+|      4       |        |           X          | Only Distance from Forest Edge predictor |
 
 ## e.
 
@@ -242,7 +242,6 @@ ggplot() + # create a plot
     panel.grid.minor = element_blank(),   # removes minor gridlines
     panel.border = element_rect(color = "darkgrey", fill = NA, size = 1) # keep panel border
 )
-
 
 ```
 
