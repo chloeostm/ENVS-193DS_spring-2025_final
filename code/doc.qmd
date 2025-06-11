@@ -34,12 +34,9 @@ In part 1, they used Pearson's correlation. In part 2 they used an ANOVA test
 
 ## b.
 
-To improve their data communication, my co-worker could include an effect size statistic to communicate how large the calculated differences are between groups. For instance, they could determine how large the difference in means of nitrogen load is between sources which adds valuable insight on the significance of the results.
-Additionally, they could include a Post-hoc pairwise comparison such as a Tukey's HSD comparison to improve how they communicated the results of the ANOVA test. This would help determine which specific group differs from the others. For instance, whether the average nitrogen load in waste water treatment differs significantly from fertilizer treatment. 
+To improve their data communication, my co-worker could include an effect size statistic to communicate how large the calculated differences are between groups. For instance, they could determine how large the difference in means of nitrogen load is between sources which adds valuable insight on the significance of the results. Additionally, they could include a Post-hoc pairwise comparison such as a Tukey's HSD comparison to improve how they communicated the results of the ANOVA test. This would help determine which specific group differs from the others. For instance, whether the average nitrogen load in waste water treatment differs significantly from fertilizer treatment.
 
 ## c.
-
-
 
 #Problem 2. Data Visualization
 
@@ -134,18 +131,18 @@ In this experiment, the difference between these birds is that Swift Parrots are
 
 ## c.
 
-The authors refer to two "seasons" which are two different years of study, 2016 and 2019, in which they recorded during the breeding season of the Swift Parrot species. The difference between these seasons is that the nest boxes were more established and familiar to the target and non-target species in 2019 compared to 2016 when they were freshly deployed resulting in stronger nest to bird relationships in 2019. 
+The authors refer to two "seasons" which are two different years of study, 2016 and 2019, in which they recorded during the breeding season of the Swift Parrot species. The difference between these seasons is that the nest boxes were more established and familiar to the target and non-target species in 2019 compared to 2016 when they were freshly deployed resulting in stronger nest to bird relationships in 2019.
 
-## d. 
+## d.
 
-| Model number | Season | Distance to forest edge | Model Description           |  
-|:------------:|:------:|:-----------------------:|:----------------------------|  
-| 1            |        |                         | no predictors (null model)  |
-| 2            |   X    |            X            | all predictors (full model) | 
-| 3            |        |                         | SLA and water treatment     |   
-| 4            |        |                         | SLA and species             |    
+| Model number | Season | Distance to forest edge | Model Description           |
+|:-------------:|:-------------:|:--------------------:|:--------------------|
+|      1       |        |                         | no predictors (null model)  |
+|      2       |   X    |            X            | all predictors (full model) |
+|      3       |   X    |                         | season                      |
+|      4       |        |            X            | Distance from Forest Edge   |
 
-## e. 
+## e.
 
 ```{r}
 
@@ -174,7 +171,8 @@ model4 <- lm(
 )
 
 ```
-## f. 
+
+## f.
 
 ```{r}
 
@@ -184,7 +182,6 @@ plot(simulateResiduals(model2))
 plot(simulateResiduals(model3))
 
 ```
-
 
 ## g.
 
@@ -200,104 +197,67 @@ The best model as determined by Akaike’s Information Criterion (AIC) that pred
 
 ## h.
 
-```{r}
-
-
-
-ggplot(nest_boxes_clean,
-       aes(x = edge_distance, y = sp, color = season)) +
-  geom_jitter(width = 8, height = 0.05, alpha = 0.5) +
-
-  # Model prediction lines
-  stat_smooth(method = "glm",
-              methods.args = list(family = "binomial"),
-              se = TRUE,
-              fullrange = TRUE,
-              aes(fill = season)) +
-  scale_y_continuous(name = "Probability of Swift Parrot Nest Box being occupied",
-                     limits = c(0, 1)) +
-  scale_x_continuous(name = "Distance from Forest edge (m)") +
-  theme_minimal() +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    text = element_text(size = 12)
-  )
-
-  # Axis labels
-  labs(
-    x = "Distance to Forest Edge (m)",
-    y = "Probability of Nest Box Occupancy",
-    title = "Model Predictions of Nest Box Occupancy by Distance and Season",
-    color = "Season",
-    fill = "Season"
-  ) 
-  
-```
-
 ```{r model-predictions}
-model2_preds <- ggpredict(
+model2_preds <- ggpredict( # use ggpredict to create a model prediction
   model2, # model object
-  terms = c("edge_distance [all]", "season") # predictors
+  terms = c("edge_distance [all]", "season") # predictors used as terms in the model prediction
 ) %>% 
-  rename(season = group,
-         edge_distance = x)
-  # treating this like a regular data frame
-  # renaming the columns
-nest_boxes_clean$season <- as.factor(nest_boxes_clean$season)
+  rename(season = group, # rename the columns
+         edge_distance = x) # rename x column to be "edge_distance"
 
-ggplot() +
-  geom_point(data = nest_boxes_clean,
-       aes(x = edge_distance,
-           y = as.numeric(sp),
-           color = season),
-       size = 2.5,
-       alpha = 0.4,
-       position = position_jitter(height = 0.05)) +
-  geom_ribbon(data = model2_preds,
-              aes(x = edge_distance,
-                  ymin = conf.low,
-                  ymax = conf.high,
-                  fill = season),
-              alpha = 0.3) + 
-  geom_line(data = model2_preds,
-            aes(x = edge_distance,
-                y = predicted,
-                color = season),
-            linewidth = 1) +
-  scale_y_continuous("Swift Parrot Occupancy: Yes (1) or No (0)",
-                     limits = c(0, 1),
-                     breaks = seq(0, 1)) +
-  scale_color_manual(name = "Season",
-                     values = c("2016" = "skyblue",   # green
-                                "2019" = "darkgreen")) + # purple 
-  scale_fill_manual(name = "Season",
-                     values = c("2016" = "lightblue",   # green
-                                "2019" = "lightgreen")) +
-  labs(x = "Distance from Forest Edge (m)") +
-  theme_minimal(base_size = 14) +
+nest_boxes_clean$season <- as.factor(nest_boxes_clean$season) # make seasons a factor
+
+ggplot() + # create a plot 
+  geom_point(data = nest_boxes_clean, # create data points 
+       aes(x = edge_distance, # use edge_distance as variable for x axis
+           y = as.numeric(sp), # use sp as variable for y axis
+           color = season), # color each season
+       size = 2.5, # set point size
+       alpha = 0.4, # set point transparency
+       position = position_jitter(height = 0.05)) + # set jitter height spread
+  geom_ribbon(data = model2_preds, # create a ribbon for data visualization
+              aes(x = edge_distance, # set edge_distance as x variable
+                  ymin = conf.low, # set y-min as conf.low
+                  ymax = conf.high, # set y-max as conf.high
+                  fill = season), # season variable sets fill color
+              alpha = 0.3) + # set transparency
+  geom_line(data = model2_preds, # create line from our model predictions
+            aes(x = edge_distance, # set edge_distance as x variable
+                y = predicted, # set predicted as y axis variable
+                color = season), # season variable sets line color
+            linewidth = 1) + # set line width
+  scale_y_continuous("Swift Parrot Occupancy: Yes (1) or No (0)", # set y axis title
+                     limits = c(0, 1), # set y axis limits
+                     breaks = seq(0, 1)) + # set tick marks only at 0 and 1
+  scale_color_manual(name = "Season", # create manual colors for points for each season
+                     values = c("2016" = "skyblue",   # set color value for 2016
+                                "2019" = "darkgreen")) +  # set color value for 2019
+  scale_fill_manual(name = "Season", # create manual colors for ribbon for each season
+                     values = c("2016" = "lightblue",   # set color value for 2016
+                                "2019" = "lightgreen")) + # set color value for 2016
+  labs(x = "Distance from Forest Edge (m)") + # label x axis
+  theme_minimal(base_size = 13) + # use minimal theme and set default text size
   theme(
-  panel.grid.major = element_blank(),  # removes major gridlines
-  panel.grid.minor = element_blank(),   # removes minor gridlines
-  panel.border = element_rect(color = "darkgrey", fill = NA, size = 1)
+    panel.grid.major = element_blank(),  # removes major gridlines
+    panel.grid.minor = element_blank(),   # removes minor gridlines
+    panel.border = element_rect(color = "darkgrey", fill = NA, size = 1) # keep panel border
 )
 
 
 ```
 
+## i.
 
+Figure 3. Data source: Stojanovic, D. et al. (2020) *Do nest boxes breed the target species or its competitors? A case study of a critically endangered bird* Ecology, 29(3)
 
 #Problem 4. Affective and exploratory Visualization
 
-## a. 
+## a.
 
 These two visualizations differ since the affective visualization heavily leans on artistic elements and creativity to share data whereas the exploratory visualizations I made for Homework 2 were designed to explicitly share the quantitative data in a simple and straightforward graph without any artistic embellishments.
 
 One similarity that I see is that in both visualizations I opted to communicate the actual data using box plots. I also separated each of the variables in my exploratory visualizations using distinct colors which I also did for my affective one.
 
-I found different patterns in my data for both visualizations mainly because I had collected much more data points by the time I made the affective visualization which resulted in different trends and patterns. For instance, my exploratory visualizations suggested that I slept more on average on days where I took the bus instead of walking, whereas my affective visualization indicated that I slept the most on days where I walked.
-The range of my data boxplots was also larger for my affective visualization since it had more data and thus a broader range since it had more outliers recorded.
+I found different patterns in my data for both visualizations mainly because I had collected much more data points by the time I made the affective visualization which resulted in different trends and patterns. For instance, my exploratory visualizations suggested that I slept more on average on days where I took the bus instead of walking, whereas my affective visualization indicated that I slept the most on days where I walked. The range of my data boxplots was also larger for my affective visualization since it had more data and thus a broader range since it had more outliers recorded.
 
 During our Week 9 workshop, I received positive feedback on my drawing design and choice of colors. My classmates suggested that I incorporate more elements alluding to the sleep variable I was using in my data, which I integrated into my design by making my little sleeping figurines in the box plots larger and gave them elements such as a pillow and a sleeping mask.
-
-
