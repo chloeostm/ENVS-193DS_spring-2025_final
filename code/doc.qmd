@@ -234,47 +234,6 @@ ggplot(nest_boxes_clean,
   ) 
   
 ```
-```{r}
-ggplot(nest_boxes_clean, aes(x = interaction(season, sp), y = edge_distance)) +
-  
-  # Boxplot with fill by occupancy
-  geom_boxplot(aes(fill = factor(sp)),
-               alpha = 0.5,
-               outlier.shape = NA) +
-
-  # Jittered points overlaid on boxplots
-  geom_jitter(aes(color = factor(sp)),
-              width = 0.2,
-              size = 2,
-              alpha = 0.8) +
-  facet_wrap(~ season, nrow = 1) +
-
-  # Custom axis labels (season on x, not the full interaction term)
-  #scale_x_discrete(labels = function(x) gsub("\\.0", " (No)", gsub("\\.1", " (Yes)", x))) +
-
-  # Labels and colors
-  labs(
-    x = "Breeding Season and Nest Occupancy",
-    y = "Distance to Forest Edge (m)",
-    fill = "Nest Occupied",
-    color = "Nest Occupied",
-    title = "Swift Parrot Nest Occupancy by Season and Distance to Forest Edge"
-  ) +
-
-  scale_fill_manual(values = c("0" = "#D55E00", "1" = "#0072B2"),
-                    labels = c("No", "Yes")) +
-  scale_color_manual(values = c("0" = "#D55E00", "1" = "#0072B2"),
-                     labels = c("No", "Yes")) +
-
-  theme_minimal() +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    text = element_text(size = 12)
-  )
-```
-
-
 
 ```{r model-predictions}
 model2_preds <- ggpredict(
@@ -292,9 +251,9 @@ ggplot() +
        aes(x = edge_distance,
            y = as.numeric(sp),
            color = season),
-       size = 3,
+       size = 2.5,
        alpha = 0.4,
-       position = position_jitter(height = 0.00)) +
+       position = position_jitter(height = 0.05)) +
   geom_ribbon(data = model2_preds,
               aes(x = edge_distance,
                   ymin = conf.low,
@@ -309,10 +268,20 @@ ggplot() +
   scale_y_continuous("Swift Parrot Occupancy: Yes (1) or No (0)",
                      limits = c(0, 1),
                      breaks = seq(0, 1)) +
-  scale_color_discrete(name = "Season") +
-  scale_fill_discrete(name = "Season") +
+  scale_color_manual(name = "Season",
+                     values = c("2016" = "skyblue",   # green
+                                "2019" = "darkgreen")) + # purple 
+  scale_fill_manual(name = "Season",
+                     values = c("2016" = "lightblue",   # green
+                                "2019" = "lightgreen")) +
   labs(x = "Distance from Forest Edge (m)") +
-  theme_minimal(base_size = 14)
+  theme_minimal(base_size = 14) +
+  theme(
+  panel.grid.major = element_blank(),  # removes major gridlines
+  panel.grid.minor = element_blank(),   # removes minor gridlines
+  panel.border = element_rect(color = "darkgrey", fill = NA, size = 1)
+)
+
 
 ```
 
