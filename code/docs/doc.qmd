@@ -30,7 +30,7 @@ library(DHARMa)
 
 ## a.
 
-In part 1, they used Pearson's correlation. In part 2 they used an ANOVA test
+In part 1, they used Pearson's correlation. In part 2 they used an ANOVA test.
 
 ## b.
 
@@ -38,7 +38,9 @@ To improve their data communication, my co-worker could include an effect size s
 
 ## c.
 
-#Problem 2. Data Visualization
+Using a Pearson's correlation test, we found that there is a significant correlation between distance from head water(km) and annual nitrogen load (kg year-1) (Pearson's correlation. r = Correlation coefficient, p = 0.03, $/alpha$ = significance level). We then performed an ANOVA test and determined that there is a significant difference in average nitrogen load (kg year-1) between water sources (urban land, atmospheric deposition, fertilizer, waste water treatment, and grasslands) (One-Way ANOVA. F(F = F value), df = degrees of freedom, p = 0.02, $\alpha$ = significance level).
+
+# Problem 2. Data Visualization
 
 ## a.
 
@@ -115,9 +117,9 @@ ggplot(data = sst_clean_summary, # create table from sst_clean_summary data
 
 ```{r}
 
-nest_boxes <- read.csv(here("data","occdist.csv"))
+nest_boxes <- read.csv(here("data","occdist.csv")) # read in data
 nest_boxes_clean <- nest_boxes %>% 
-  clean_names()
+  clean_names() # clean the data
 
 ```
 
@@ -136,7 +138,7 @@ The authors refer to two "seasons" which are two different years of study, 2016 
 ## d.
 
 | Model number | Season | Forest Edge Distance | Model Description |
-|:---------------:|:---------------:|:---------------:|---------------------|
+|:----------------:|:----------------:|:----------------:|-------------------|
 | 1 |  |  | No predictors (null model) |
 | 2 | X | X | All predictors (full model) |
 | 3 | X |  | Only Season predictor |
@@ -176,10 +178,10 @@ model4 <- lm(
 
 ```{r}
 
-plot(simulateResiduals(model0))
-plot(simulateResiduals(model1))
+plot(simulateResiduals(model1)) # plot model using DHARMa residual
 plot(simulateResiduals(model2))
 plot(simulateResiduals(model3))
+plot(simulateResiduals(model4))
 
 ```
 
@@ -193,11 +195,12 @@ print(model_compare)
 
 ```
 
-The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance.
+The best model as determined by Akaike’s Information Criterion (AIC) that predicts Swift Parrot nest box occupancy includes season and edge distance. (model 2)
 
 ## h.
 
 ```{r model-predictions}
+#| warning: false
 model2_preds <- ggpredict( # use ggpredict to create a model prediction
   model2, # model object
   terms = c("edge_distance [all]", "season") # predictors used as terms in the model prediction
@@ -247,10 +250,9 @@ ggplot() + # create a plot
 
 ## i.
 
-**Figure 3. Swift Parrot Nest Occupancy by Distance from Forest Edge(m).** This figure displays observations of the endangered Swift parrot bird in box nests (0 = nest not occupied, 1 = nest occupied) plotted against the nests distance from the forest edge (m) depending on season. The points designating how far the nest was and whether it was occupied are jittered for visibility. The different colors are used to separate points on the "season" or year they were recorded in: 2016 or 2019. The shaded ribbons represent 95% confidence intervals calculated using a full model prediction that predicts occupancy probability across the range of distances. 
-Data source: Stojanovic, D. et al. (2020) *Do nest boxes breed the target species or its competitors? A case study of a critically endangered bird* Ecology, 29(3)
+**Figure 3. Swift Parrot Nest Occupancy by Distance from Forest Edge(m).** This figure displays observations of the endangered Swift parrot bird in box nests (0 = nest not occupied, 1 = nest occupied) plotted against the nests distance from the forest edge (m) depending on season. The points designating how far the nest was and whether it was occupied are jittered for visibility. The different colors are used to separate points on the "season" or year they were recorded in: 2016 or 2019. The shaded ribbons represent 95% confidence intervals calculated using a full model prediction that predicts occupancy probability across the range of distances. Data source: Stojanovic, D. et al. (2020) *Do nest boxes breed the target species or its competitors? A case study of a critically endangered bird* Ecology, 29(3)
 
-## j. 
+## j.
 
 ```{r}
 
@@ -262,14 +264,14 @@ predictions <- ggpredict(
 print(predictions) # view predictions
 
 ```
-The predicted probability (at 95% confidence) of Swift Parrot occupancy in 2016 at 0m from the Forest edge is 43% and at 900m it is 13%.
-The predicted probability (at 95% confidence) of Swift Parrot occupancy in 2019 at 0m from the Forest edge is 30% and at 900m it is 1%.
+
+The predicted probability (at 95% confidence) of Swift Parrot occupancy in 2016 at 0m from the Forest edge is 43% and at 900m it is 13%. The predicted probability (at 95% confidence) of Swift Parrot occupancy in 2019 at 0m from the Forest edge is 30% and at 900m it is 1%.
 
 ## k.
 
-In this experiment, we compiled observations of Swift Parrots occupying box nests at various distances from the Forest Edge during two breeding seasons: 2016 and 2019. After testing various models to best represent our data, the best model as determined by Akaike’s Information Criterion (AIC) was a full model where we used all predictors, the season and the distance from the Forest Edge, to explain why we might see certain trends in nest occupancy. In figure 3, (problem 3.h.) we created a plot comparing our variables (Distance from Forest Edge, Season, and Swift Parrot occupancy) showing model predictions with 95% confidence intervals which showed that Swift Parrot occupancy overall tended to decrease in 2019 compared to 2016, and as nest boxes are set further from the Forest Edge. In 2016 the probability of a nest being occupied was 43% when it was 0m from the forest and 13% when 900m from the forest compared to 2016 which saw a probability of 30% when the nest was 0m from the forest and 1% when it was 900m from the forest. From these results, we can interpret that the endangered Swift parrot has been increasingly vulnerable to competition from other native bird species, such as Common Starlings and tree Martins, and has been less likely to occupy established nests in 2019 and nests that are further from the Forests Edge. 
+In this experiment, we compiled observations of Swift Parrots occupying box nests at various distances from the Forest Edge during two breeding seasons: 2016 and 2019. After testing various models to best represent our data, the best model as determined by Akaike’s Information Criterion (AIC) was a full model where we used all predictors, the season and the distance from the Forest Edge, to explain why we might see certain trends in nest occupancy. In figure 3, (problem 3.h.) we created a plot comparing our variables (Distance from Forest Edge, Season, and Swift Parrot occupancy) showing model predictions with 95% confidence intervals which showed that Swift Parrot occupancy overall tended to decrease in 2019 compared to 2016, and as nest boxes are set further from the Forest Edge. In 2016 the probability of a nest being occupied was 43% when it was 0m from the forest and 13% when 900m from the forest compared to 2016 which saw a probability of 30% when the nest was 0m from the forest and 1% when it was 900m from the forest. From these results, we can interpret that the endangered Swift parrot has been increasingly vulnerable to competition from other native bird species, such as Common Starlings and tree Martins, and has been less likely to occupy established nests in 2019 and nests that are further from the Forests Edge.
 
-#Problem 4. Affective and exploratory Visualization
+# Problem 4. Affective and exploratory Visualization
 
 ## a.
 
