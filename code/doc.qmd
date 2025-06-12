@@ -138,7 +138,7 @@ The authors refer to two "seasons" which are two different years of study, 2016 
 ## d.
 
 | Model number | Season | Forest Edge Distance | Model Description |
-|:----------------:|:----------------:|:----------------:|-------------------|
+|:--:|:--:|:--:|----|
 | 1 |  |  | No predictors (null model) |
 | 2 | X | X | All predictors (full model) |
 | 3 | X |  | Only Season predictor |
