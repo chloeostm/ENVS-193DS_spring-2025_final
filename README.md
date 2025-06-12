@@ -13,9 +13,9 @@ at the end I also look back on the exploratory and affective visualizations I cr
 ├── ENVS-193DS_spring-2025_final.Rproj 
 ├── README.md       
 ├── code 
-│   ├── ENVS-193DS_spring-2025_final_files 
-│   ├── ENVS-193DS_spring-2025_final.html   
-│   ├── ENVS-193DS_spring-2025_final.qmd   
+│   ├── doc_files 
+│   ├── doc.html   
+│   ├── doc.qmd   
 └── data  
     └── occdist.csv  
     └── SST_update2023.csv  
